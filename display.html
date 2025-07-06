@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualizar Senhas</title>
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+    }
+    canvas {
+      margin: 10px;
+      background-color: #222;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Senhas recebidas</h1>
+  <div id="output"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCUhYt0az_F_ATHcOdSoLi-Ks520Zxjzbs",
+      authDomain: "senha-padroes.firebaseapp.com",
+      projectId: "senha-padroes",
+      storageBucket: "senha-padroes.firebasestorage.app",
+      messagingSenderId: "387208237733",
+      appId: "1:387208237733:web:22018c4eb89a872367334c",
+      measurementId: "G-L57HTKV23H"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const output = document.getElementById("output");
+
+    const snapshot = await getDocs(query(collection(db, "padroes"), orderBy("timestamp", "desc")));
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const padrao = data.padrao;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 300;
+      canvas.height = 300;
+      const ctx = canvas.getContext("2d");
+
+      const grid = 3;
+      const spacing = 100;
+      const offset = 50;
+
+      const positions = [];
+      for (let y = 0; y < grid; y++) {
+        for (let x = 0; x < grid; x++) {
+          positions.push([x * spacing + offset, y * spacing + offset]);
+        }
+      }
+
+      ctx.strokeStyle = "#4fc3f7";
+      ctx.lineWidth = 5;
+
+      for (let i = 0; i < padrao.length; i++) {
+        const pos = positions[padrao[i] - 1];
+        ctx.beginPath();
+        ctx.arc(pos[0], pos[1], 10, 0, 2 * Math.PI);
+        ctx.fillStyle = "white";
+        ctx.fill();
+
+        if (i > 0) {
+          const prev = positions[padrao[i - 1] - 1];
+          ctx.beginPath();
+          ctx.moveTo(prev[0], prev[1]);
+          ctx.lineTo(pos[0], pos[1]);
+          ctx.stroke();
+        }
+      }
+
+      output.appendChild(canvas);
+    });
+  </script>
+</body>
+</html>
+
+
+
